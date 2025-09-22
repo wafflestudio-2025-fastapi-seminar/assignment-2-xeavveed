@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Cookie, Header, Response
 from pydantic import BaseModel, EmailStr
 
-from common.database import blocked_token_db, session_db, user_db
+from src.common.database import blocked_token_db, session_db, user_db
 from passlib.hash import bcrypt
 
 from jose import jwt, JWTError, ExpiredSignatureError

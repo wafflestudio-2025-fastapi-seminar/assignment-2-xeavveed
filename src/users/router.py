@@ -10,8 +10,8 @@ from fastapi import (
 
 from src.users.schemas import CreateUserRequest, UserResponse
 from src.auth.router import decode_jwt
-from common.database import blocked_token_db, session_db, user_db
-from users.errors import EmailAlreadyExistsException, InvalidSessionException, BadAuthorizationHeaderException
+from src.common.database import blocked_token_db, session_db, user_db
+from src.users.errors import EmailAlreadyExistsException, InvalidSessionException, BadAuthorizationHeaderException
 from passlib.hash import bycrypt
 
 import time
