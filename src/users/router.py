@@ -30,7 +30,7 @@ def create_user(request: CreateUserRequest) -> UserResponse:
     user_db.append({
         "user_id": user_cnt,
         "email": request.email,
-        "password": bcrypt.hash(request.password),
+        "hashed_password": bcrypt.hash(request.password),
         "name": request.name,
         "phone_number": request.phone_number,
         "height": request.height,
@@ -64,4 +64,6 @@ def get_user_info(sid: str  = Cookie(None),
         if user["user_id"] == user_id:
             return UserResponse(user_id = user["user_id"], email = user["email"], name = user["name"],
                                 phone_number = user["phone_number"], height = user["height"], bio = user["bio"])
+    else:
+        raise UnauthenticatedException()
         

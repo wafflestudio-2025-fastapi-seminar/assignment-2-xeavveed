@@ -109,13 +109,11 @@ def create_session(request: Login_request, response: Response):
                 }
                 response.set_cookie(
                     key="sid",
-                    value=sid,
+                    value=session_id,
                     httponly=True,
                     max_age=LONG_SESSION_LIFESPAN * 60,
                 )
-                return {
-                    Response(status_code = 200)
-                }
+                return Response(status_code = 200)
     raise InvalidAccountException()
 
 @auth_router.delete("/session")
@@ -124,6 +122,4 @@ def delete_session(sid: str = Cookie(None), response: Response = None):
         response.delete_cookie(key="sid")
         if sid in session_db:
             del session_db[sid]
-    return {
-        Response(status_code = 204)
-    }
+    return Response(status_code = 204)
