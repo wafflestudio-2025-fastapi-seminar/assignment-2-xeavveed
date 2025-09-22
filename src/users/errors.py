@@ -1,4 +1,4 @@
-from src.common import CustomException
+from src.common.custom_exception import CustomException
 
 class MissingValueException(CustomException):
     def __init__(self):
