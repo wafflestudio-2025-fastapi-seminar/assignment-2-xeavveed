@@ -11,6 +11,16 @@ app = FastAPI()
 
 app.include_router(api_router)
 
+@app.exception_handler(CustomException)
+def handle_custom_exception(request, exc: CustomException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error_code": exc.error_code,
+            "error_msg": exc.error_message
+        }
+    )
+    
 @app.exception_handler(RequestValidationError)
 def handle_request_validation_error(request, exc):
     err = MissingValueException()
