@@ -12,7 +12,7 @@ from src.users.schemas import CreateUserRequest, UserResponse
 from src.auth.router import decode_jwt
 from src.common.database import blocked_token_db, session_db, user_db
 from src.users.errors import EmailAlreadyExistsException, InvalidSessionException, BadAuthorizationHeaderException
-from passlib.hash import bycrypt
+from passlib.hash import bcrypt
 
 import time
 
@@ -30,7 +30,7 @@ def create_user(request: CreateUserRequest) -> UserResponse:
     user_db.append({
         "user_id": user_cnt,
         "email": request.email,
-        "password": bycrypt.hash(request.password),
+        "password": bcrypt.hash(request.password),
         "name": request.name,
         "phone_number": request.phone_number,
         "height": request.height,
