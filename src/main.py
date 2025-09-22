@@ -5,6 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from tests.util import get_all_src_py_files_hash
 from src.api import api_router
 from src.users.errors import MissingValueException
+from src.common.custom_exception import CustomException
 
 app = FastAPI()
 
