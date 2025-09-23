@@ -60,10 +60,13 @@ def get_user_info(sid: str  = Cookie(None),
         token = authorization.split(" ")[1]
         payload = decode_jwt(token)
         user_id = int(payload.get("sub"))
+    if user_id is None:
+        raise UnauthenticatedException()
+    
     for user in user_db:
         if user["user_id"] == user_id:
             return UserResponse(user_id = user["user_id"], email = user["email"], name = user["name"],
                                 phone_number = user["phone_number"], height = user["height"], bio = user["bio"])
-    else:
-        raise UnauthenticatedException()
+            
+    raise UnauthenticatedException()
         
