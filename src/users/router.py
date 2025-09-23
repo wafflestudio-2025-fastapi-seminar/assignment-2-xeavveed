@@ -14,7 +14,7 @@ from src.common.database import blocked_token_db, session_db, user_db
 from src.users.errors import EmailAlreadyExistsException, InvalidSessionException, BadAuthorizationHeaderException, UnauthenticatedException
 from passlib.hash import bcrypt
 
-import time
+from datetime import datetime
 
 user_router = APIRouter(prefix="/users", tags=["users"])
 
@@ -53,7 +53,7 @@ def get_user_info(sid: str  = Cookie(None),
     user_id = None
     if sid:
         session = session_db.get(sid)
-        if session is None or session["expires_at"] <= time.time():
+        if session is None or session["expires_at"] <= datetime.utcnow():
             raise InvalidSessionException()
         user_id = session["user_id"]
     elif authorization:

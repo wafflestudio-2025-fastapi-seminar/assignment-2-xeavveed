@@ -106,7 +106,7 @@ def create_session(request: Login_request)-> Response:
                     key="sid",
                     value=session_id,
                     httponly=True,
-                    max_age=LONG_SESSION_LIFESPAN,
+                    max_age=LONG_SESSION_LIFESPAN * 60,
                 )
                 return response
     raise InvalidAccountException()
@@ -115,7 +115,7 @@ def create_session(request: Login_request)-> Response:
 def delete_session(response: Response, sid: str = Cookie(None)):
     if sid:
         response.delete_cookie(key="sid")
-        response.status_code = 204
         if sid in session_db:
             del session_db[sid]
+    response.status_code = 204
     return response
