@@ -53,7 +53,7 @@ def get_user_info(sid: str  = Cookie(None),
     user_id = None
     if sid:
         session = session_db.get(sid)
-        if session is None or session["expires_at"] < time.time():
+        if session is None or session["expires_at"] <= time.time():
             raise InvalidSessionException()
         user_id = session["user_id"]
     elif authorization:
