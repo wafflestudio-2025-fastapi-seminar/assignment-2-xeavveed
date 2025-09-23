@@ -14,20 +14,20 @@ auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 ALGORITHM = "HS256"
-SHORT_SESSION_LIFESPAN = 15 * 60
-LONG_SESSION_LIFESPAN = 24 * 60 * 60
+SHORT_SESSION_LIFESPAN = 15
+LONG_SESSION_LIFESPAN = 24 * 60
 
 class Login_request(BaseModel):
     email: EmailStr
     password: str
     
 def create_access_token(user_id: int):
-    expire = datetime.utcnow() + timedelta(seconds=SHORT_SESSION_LIFESPAN)
+    expire = datetime.utcnow() + timedelta(minutes=SHORT_SESSION_LIFESPAN)
     to_encode = {"sub": str(user_id), "exp": expire}
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def create_refresh_token(user_id: int):
-    expire = datetime.utcnow() + timedelta(seconds=LONG_SESSION_LIFESPAN)
+    expire = datetime.utcnow() + timedelta(minutes=LONG_SESSION_LIFESPAN)
     to_encode = {"sub": str(user_id), "exp": expire}
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -39,6 +39,17 @@ def decode_jwt(token: str):
         raise InvalidTokenException()
     except JWTError:
         raise InvalidTokenException()
+
+def get_auth_token(authorization: str = Header(None)):
+    if not authorization:
+        raise UnauthenticatedException()
+    if not authorization.startswith("Bearer "):
+        raise BadAuthorizationHeaderException()
+    token = authorization.split(" ")[1]
+    if token in blocked_token_db:
+        raise InvalidTokenException()
+    return token
+
 
 @auth_router.post("/token")
 def create_token(request: Login_request)-> dict:
@@ -56,15 +67,7 @@ def create_token(request: Login_request)-> dict:
     raise InvalidAccountException()
 
 @auth_router.post("/token/refresh")
-def refresh_token(authorization: str = Header(None))-> dict:
-    if not authorization:
-        raise UnauthenticatedException()
-    if not authorization.startswith("Bearer "):
-        raise BadAuthorizationHeaderException()
-    token = authorization.split(" ")[1]
-    if token in blocked_token_db:
-        raise InvalidTokenException()
-    
+def refresh_token(token = Depends(get_auth_token))-> dict:
     payload = decode_jwt(token)
     user_id = payload.get("sub")
     exp = payload.get("exp")
@@ -79,17 +82,8 @@ def refresh_token(authorization: str = Header(None))-> dict:
     }
 
 @auth_router.delete("/token")
-def delete_token(authorization: str = Header(None)):
-    if not authorization:
-        raise UnauthenticatedException()
-    if not authorization.startswith("Bearer "):
-        raise BadAuthorizationHeaderException()
-    token = authorization.split(" ")[1]
-    if token in blocked_token_db:
-        raise InvalidTokenException()
-    
+def delete_token(token = Depends(get_auth_token))-> Response:
     payload = decode_jwt(token)
-    user_id = int(payload.get("sub"))
     exp = payload.get("exp")
     blocked_token_db[token] = exp
     
@@ -105,14 +99,14 @@ def create_session(request: Login_request)-> Response:
                 session_id = os.urandom(16).hex()
                 session_db[session_id] = {
                     "user_id": user["user_id"],
-                    "expires_at": time.time() + LONG_SESSION_LIFESPAN
+                    "expires_at": time.time() + LONG_SESSION_LIFESPAN * 60
                 }
                 response = Response(status_code = 200)
                 response.set_cookie(
                     key="sid",
                     value=session_id,
                     httponly=True,
-                    max_age=LONG_SESSION_LIFESPAN,
+                    max_age=LONG_SESSION_LIFESPAN * 60,
                 )
                 return response
     raise InvalidAccountException()
