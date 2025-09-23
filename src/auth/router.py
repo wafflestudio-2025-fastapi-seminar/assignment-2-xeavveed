@@ -96,7 +96,7 @@ def delete_token(authorization: str = Header(None)):
     return Response(status_code = 204)
 
 @auth_router.post("/session")
-def create_session(request: Login_request, response: Response):
+def create_session(request: Login_request)-> Response:
     email = request.email
     password = request.password
     for user in user_db:
@@ -105,8 +105,9 @@ def create_session(request: Login_request, response: Response):
                 session_id = os.urandom(16).hex()
                 session_db[session_id] = {
                     "user_id": user["user_id"],
-                    "expired at": time.time() + LONG_SESSION_LIFESPAN * 60
+                    "expires_at": time.time() + LONG_SESSION_LIFESPAN * 60
                 }
+                response = Response(status_code = 200)
                 response.set_cookie(
                     key="sid",
                     value=session_id,
