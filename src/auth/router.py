@@ -6,7 +6,7 @@ from passlib.hash import bcrypt
 
 from jose import jwt, JWTError, ExpiredSignatureError
 from datetime import datetime, timedelta
-import os, time
+import os
 
 from src.users.errors import InvalidAccountException, BadAuthorizationHeaderException, UnauthenticatedException, InvalidTokenException
 
@@ -99,14 +99,14 @@ def create_session(request: Login_request)-> Response:
                 session_id = os.urandom(16).hex()
                 session_db[session_id] = {
                     "user_id": user["user_id"],
-                    "expires_at": time.time() + LONG_SESSION_LIFESPAN * 60
+                    "expires_at": datetime.utcnow() + timedelta(minutes=LONG_SESSION_LIFESPAN)
                 }
                 response = Response(status_code = 200)
                 response.set_cookie(
                     key="sid",
                     value=session_id,
                     httponly=True,
-                    max_age=LONG_SESSION_LIFESPAN * 60,
+                    max_age=LONG_SESSION_LIFESPAN,
                 )
                 return response
     raise InvalidAccountException()
