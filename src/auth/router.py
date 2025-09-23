@@ -14,20 +14,20 @@ auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 ALGORITHM = "HS256"
-SHORT_SESSION_LIFESPAN = 15
-LONG_SESSION_LIFESPAN = 24 * 60
+SHORT_SESSION_LIFESPAN = 15 * 60
+LONG_SESSION_LIFESPAN = 24 * 60 * 60
 
 class Login_request(BaseModel):
     email: EmailStr
     password: str
     
 def create_access_token(user_id: int):
-    expire = datetime.utcnow() + timedelta(minutes=SHORT_SESSION_LIFESPAN)
+    expire = datetime.utcnow() + timedelta(seconds=SHORT_SESSION_LIFESPAN)
     to_encode = {"sub": str(user_id), "exp": expire}
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def create_refresh_token(user_id: int):
-    expire = datetime.utcnow() + timedelta(minutes=LONG_SESSION_LIFESPAN)
+    expire = datetime.utcnow() + timedelta(seconds=LONG_SESSION_LIFESPAN)
     to_encode = {"sub": str(user_id), "exp": expire}
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -105,20 +105,20 @@ def create_session(request: Login_request)-> Response:
                 session_id = os.urandom(16).hex()
                 session_db[session_id] = {
                     "user_id": user["user_id"],
-                    "expires_at": time.time() + LONG_SESSION_LIFESPAN *60
+                    "expires_at": time.time() + LONG_SESSION_LIFESPAN
                 }
                 response = Response(status_code = 200)
                 response.set_cookie(
                     key="sid",
                     value=session_id,
                     httponly=True,
-                    max_age=LONG_SESSION_LIFESPAN * 60,
+                    max_age=LONG_SESSION_LIFESPAN,
                 )
                 return response
     raise InvalidAccountException()
 
 @auth_router.delete("/session")
-def delete_session(response: Response, id: str = Cookie(None)):
+def delete_session(response: Response, sid: str = Cookie(None)):
     if sid:
         response.delete_cookie(key="sid")
         response.status_code = 204
