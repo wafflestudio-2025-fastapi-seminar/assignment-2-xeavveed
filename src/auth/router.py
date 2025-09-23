@@ -22,12 +22,12 @@ class Login_request(BaseModel):
     password: str
     
 def create_access_token(user_id: int):
-    expire = datetime.utcnow() + timedelta(seconds=SHORT_SESSION_LIFESPAN)
+    expire = datetime.utcnow() + timedelta(minutes=SHORT_SESSION_LIFESPAN)
     to_encode = {"sub": str(user_id), "exp": expire}
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def create_refresh_token(user_id: int):
-    expire = datetime.utcnow() + timedelta(seconds=LONG_SESSION_LIFESPAN)
+    expire = datetime.utcnow() + timedelta(minutes=LONG_SESSION_LIFESPAN)
     to_encode = {"sub": str(user_id), "exp": expire}
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -105,20 +105,20 @@ def create_session(request: Login_request)-> Response:
                 session_id = os.urandom(16).hex()
                 session_db[session_id] = {
                     "user_id": user["user_id"],
-                    "expires_at": time.time() + LONG_SESSION_LIFESPAN
+                    "expires_at": time.time() + LONG_SESSION_LIFESPAN *60
                 }
                 response = Response(status_code = 200)
                 response.set_cookie(
                     key="sid",
                     value=session_id,
                     httponly=True,
-                    max_age=LONG_SESSION_LIFESPAN,
+                    max_age=LONG_SESSION_LIFESPAN * 60,
                 )
                 return response
     raise InvalidAccountException()
 
 @auth_router.delete("/session")
-def delete_session(sid: str = Cookie(None), response: Response = None):
+def delete_session(sid: str = Cookie(None), response: Response):
     if sid:
         response.delete_cookie(key="sid")
         response.status_code = 204

@@ -11,7 +11,7 @@ from fastapi import (
 from src.users.schemas import CreateUserRequest, UserResponse
 from src.auth.router import decode_jwt
 from src.common.database import blocked_token_db, session_db, user_db
-from src.users.errors import EmailAlreadyExistsException, InvalidSessionException, BadAuthorizationHeaderException
+from src.users.errors import EmailAlreadyExistsException, InvalidSessionException, BadAuthorizationHeaderException, UnauthenticatedException
 from passlib.hash import bcrypt
 
 import time
@@ -49,6 +49,8 @@ def create_user(request: CreateUserRequest) -> UserResponse:
 def get_user_info(sid: str  = Cookie(None), 
     authorization: str = Header(None)
 ) -> UserResponse:
+    
+    user_id = None
     if sid:
         session = session_db.get(sid)
         if session is None or session["expires_at"] < time.time():
