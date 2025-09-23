@@ -118,7 +118,7 @@ def create_session(request: Login_request)-> Response:
     raise InvalidAccountException()
 
 @auth_router.delete("/session")
-def delete_session(sid: str = Cookie(None), response: Response):
+def delete_session(response: Responses, id: str = Cookie(None)):
     if sid:
         response.delete_cookie(key="sid")
         response.status_code = 204
