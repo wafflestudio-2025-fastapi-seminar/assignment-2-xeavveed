@@ -37,6 +37,8 @@ def decode_jwt(token: str):
         return payload
     except ExpiredSignatureError:
         raise InvalidTokenException()
+    except JWTError:
+        raise InvalidTokenException()
 
 @auth_router.post("/token")
 def create_token(request: Login_request)-> dict:
@@ -91,9 +93,7 @@ def delete_token(authorization: str = Header(None)):
     exp = payload.get("exp")
     blocked_token_db[token] = exp
     
-    return {
-        Response(status_code = 204)
-    }
+    return Response(status_code = 204)
 
 @auth_router.post("/session")
 def create_session(request: Login_request, response: Response):
@@ -113,7 +113,7 @@ def create_session(request: Login_request, response: Response):
                     httponly=True,
                     max_age=LONG_SESSION_LIFESPAN * 60,
                 )
-                return Response(status_code = 200)
+                return response
     raise InvalidAccountException()
 
 @auth_router.delete("/session")
